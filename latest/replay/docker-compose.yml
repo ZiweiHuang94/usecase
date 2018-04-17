@@ -1,0 +1,44 @@
+version: '2'
+
+services:
+    odsupercomponent:
+        image: ${IMAGE}
+        network_mode: "host"
+        volumes:
+        - .:/opt/opendlv.data
+        command: "/opt/od4/bin/odsupercomponent --cid=${CID} --verbose=1 --configuration=/opt/opendlv.data/configuration"
+
+
+    #signal-viewer
+    signal-viewer:
+        image: chalmersrevere/opendlv-signal-viewer-multi:v0.0.4
+        network_mode: "host"
+        ports:
+            - "8080:8080" 
+        command: "--cid=${CID}"
+
+    #vehicle-viewer
+    vehicle-viewer:
+       image: chalmersrevere/opendlv-vehicle-view-multi:v0.0.8
+       network_mode: "host"
+       ports:
+           - "8081:8081" 
+       command: "--cid=${CID}"
+
+    #replay
+    odcockpit:
+       image: ${IMAGE}
+       network_mode: host
+       environment:
+       - DISPLAY=$DISPLAY
+       volumes:
+       - /tmp/.X11-unix:/tmp/.X11-unix
+       #- .:/opt/opendlv.data
+       - ~/opendlv/opendlv.cfsd18/code/logic-cfsd18/perception/detectconelane/src:/opt/testdata
+       - ~/recordings:/opt/Recordings
+       ipc: host
+       user: odv
+       depends_on:
+           - odsupercomponent
+       command: "/opt/od4/bin/odcockpit --cid=${CID}" 
+
